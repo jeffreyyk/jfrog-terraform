@@ -1,0 +1,62 @@
+name: "Terraform Deployment"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write # Required for requesting the AWS OIDC JWT token
+  contents: read  # Required for checking out the repository code
+
+jobs:
+  terraform:
+    name: "Terraform Plan & Apply"
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Step 1: Checkout Git Repository ─────────────────────────────────
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ── Step 2: Authenticate to AWS via OIDC ────────────────────────────
+      # This replaces your local web portal key copy-paste routine
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::0352-7489-3828:role/github-actions-terraform-role # Update with your specific AWS IAM OIDC Role ARN
+          aws-region: ap-south-1
+          audience: sts.amazonaws.com
+
+      # ── Step 3: Set up Terraform CLI ────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
+
+      # ── Step 4: Initialize Terraform Backend ────────────────────────────
+      # Automatically maps your S3 state engine configuration 
+      - name: Terraform Init
+        run: terraform init
+        env:
+          TF_VAR_jfrog_token: ${{ secrets.JFROG_TOKEN }}
+
+      # ── Step 5: Check formatting and syntax validation ──────────────────
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ── Step 6: Generate Execution Plan ─────────────────────────────────
+      - name: Terraform Plan
+        run: terraform plan -input=false
+        env:
+          TF_VAR_jfrog_token: ${{ secrets.JFROG_TOKEN }}
+
+      # ── Step 7: Apply Infrastructure Alterations (Main Branch Only) ─────
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+        env:
+          TF_VAR_jfrog_token: ${{ secrets.JFROG_TOKEN }}
