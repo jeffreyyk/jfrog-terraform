@@ -27,7 +27,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::0352-7489-3828:role/github-actions-terraform-role # Update with your specific AWS IAM OIDC Role ARN
+          role-to-assume: arn:aws:iam::035274893828:role/github-actions-terraform-role # Update with your specific AWS IAM OIDC Role ARN
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
