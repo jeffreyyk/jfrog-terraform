@@ -28,7 +28,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::035274893828:role/github-actions-terraform-role # Update with your specific AWS IAM OIDC Role ARN
-          aws-region: ap-south-1
+          aws-region: eu-west-1
           audience: sts.amazonaws.com
 
       # ── Step 3: Set up Terraform CLI ────────────────────────────────────
